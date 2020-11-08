@@ -4,15 +4,17 @@ use std::path::Path;
 use std::env;
 
 fn main() {
+    let mut record_count = 0;
     // File hosts must exist in current path before this produces output
     if let Ok(lines) = read_lines(env::args().nth(1).unwrap()) {
         // Consumes the iterator, returns an (Optional) String
         for line in lines {
-            if let Ok(ip) = line {
-                println!("{}", ip);
+            if let Ok(_record) = line {
+                record_count += 1;
             }
         }
     }
+    println!("Total records: {}", record_count);
 }
 
 // The output is wrapped in a Result to allow matching on errors
