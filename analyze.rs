@@ -4,13 +4,18 @@ use std::path::Path;
 use std::env;
 
 fn main() {
-    let mut record_count = 0;
+    let mut record_count    = 0;
+    let mut first_line_done = false;
     // File hosts must exist in current path before this produces output
     if let Ok(lines) = read_lines(env::args().nth(1).unwrap()) {
         // Consumes the iterator, returns an (Optional) String
         for line in lines {
-            if let Ok(_record) = line {
+            if line.is_ok() {
                 record_count += 1;
+            }
+            if ! first_line_done {
+                println!("All column names: {:#?}", line.unwrap().split(',').collect::<Vec::<&str>>());
+                first_line_done = true;
             }
         }
     }
