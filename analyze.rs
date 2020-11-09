@@ -13,6 +13,9 @@ fn main() {
     let mut start_time       = i64::MAX;
     let mut end_time         = 0;
     let mut ts_index         = usize::MAX;
+    let mut enq_ts_index     = usize::MAX;
+    let mut deq_ts_index     = usize::MAX;
+    let mut qdelay_ts_index  = usize::MAX; 
     let mut column_name_to_index_map = HashMap::new();
 
     // File hosts must exist in current path before this produces output
@@ -33,14 +36,21 @@ fn main() {
                 first_line_done = true;
                 println!("Print column_name_to_index_map: {:#?}", column_name_to_index_map);
                 ts_index = column_name_to_index_map["Genesis-Timestamp"];
+                enq_ts_index = column_name_to_index_map["Enqueue-Timestamp"];
+                deq_ts_index = column_name_to_index_map["Dequeue-Timestamp"];
+                qdelay_ts_index = column_name_to_index_map["3"];
             } else {
                 if line.is_ok() {
                     record_count += 1;
                     let tmp = line.unwrap(); 
                     let records = tmp.split(',').collect::<Vec::<&str>>();
+                    let orig_qdelay = (f64::from_str(records[qdelay_ts_index]).unwrap() * 1000.0).round() as i64;
                     start_time = cmp::min(i64::from_str(records[ts_index]).unwrap(), start_time);
                     end_time   = cmp::max(i64::from_str(records[ts_index]).unwrap(), end_time);
-                    if record_count % 1000 == 0 {
+                    let qdelay     = i64::from_str(records[deq_ts_index]).unwrap() -
+                                     i64::from_str(records[enq_ts_index]).unwrap();
+                    assert!(orig_qdelay == qdelay);
+                    if record_count % 10000 == 0 {
                         println!("Done with {} records", record_count);
                     }
                 }
