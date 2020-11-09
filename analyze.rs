@@ -34,7 +34,6 @@ fn main() {
                     i = i + 1;
                 }
                 first_line_done = true;
-                println!("Print column_name_to_index_map: {:#?}", column_name_to_index_map);
                 ts_index = column_name_to_index_map["Genesis-Timestamp"];
                 enq_ts_index = column_name_to_index_map["Enqueue-Timestamp"];
                 deq_ts_index = column_name_to_index_map["Dequeue-Timestamp"];
@@ -52,21 +51,19 @@ fn main() {
                     qdelaycount_vector[((now-base_time)/1000000) as usize] += 1;
                     assert!(orig_qdelay == qdelay);
                     if record_count % 10000 == 0 {
-                        println!("Done with {} records", record_count);
+                        eprintln!("Done with {} records", record_count);
                     }
                 }
             }
         }
     }
-    let mut avg_qdelay = Vec::new();
     for i in 0..NUM_SECONDS {
         if qdelaycount_vector[i] == 0 {
-            avg_qdelay.push(-1.0000);
+            println!("{}", -1.0);
         } else {
-            avg_qdelay.push(qdelaysum_vector[i] as f64/qdelaycount_vector[i] as f64);
+            println!("{}",(qdelaysum_vector[i] as f64/qdelaycount_vector[i] as f64));
         }
     }
-    println!("Queuing delay: {:#?}", avg_qdelay);
 }
 
 // The output is wrapped in a Result to allow matching on errors
