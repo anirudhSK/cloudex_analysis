@@ -3,7 +3,6 @@ use std::io::{self, BufRead};
 use std::path::Path;
 use std::env;
 use std::collections::HashMap;
-use std::cmp;
 use std::i64;
 use std::str::FromStr;
 const NUM_SECONDS : usize      = 10000;
@@ -11,8 +10,6 @@ const NUM_SECONDS : usize      = 10000;
 fn main() {
     let mut record_count     = 0;
     let mut first_line_done  = false;
-    let mut start_time       = i64::MAX;
-    let mut end_time         = 0;
     let mut ts_index         = usize::MAX;
     let mut enq_ts_index     = usize::MAX;
     let mut deq_ts_index     = usize::MAX;
@@ -49,8 +46,6 @@ fn main() {
                     let records = tmp.split(',').collect::<Vec::<&str>>();
                     let now  = i64::from_str(records[ts_index]).unwrap();
                     let orig_qdelay = (f64::from_str(records[qdelay_ts_index]).unwrap() * 1000.0).round() as i64;
-                    start_time = cmp::min(now, start_time);
-                    end_time   = cmp::max(now, end_time);
                     let qdelay     = i64::from_str(records[deq_ts_index]).unwrap() -
                                      i64::from_str(records[enq_ts_index]).unwrap();
                     qdelaysum_vector[((now-base_time)/1000000) as usize] += qdelay;
@@ -63,7 +58,6 @@ fn main() {
             }
         }
     }
-    println!("Total records: {}, start_time = {}, end_time = {}", record_count, start_time, end_time);
     let mut avg_qdelay = Vec::new();
     for i in 0..NUM_SECONDS {
         if qdelaycount_vector[i] == 0 {
