@@ -27,8 +27,8 @@ fn main() {
                 let column_names = tmp.split(',').collect::<Vec::<&str>>();
                 let mut i = 0;
                 for column_name in column_names {
+                    column_name_to_index_map.insert(column_name.to_string(), i);
                     i = i + 1;
-                    column_name_to_index_map.insert(column_name.to_string(), i); 
                 }
                 first_line_done = true;
                 println!("Print column_name_to_index_map: {:#?}", column_name_to_index_map);
