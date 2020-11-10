@@ -8,11 +8,13 @@ use std::str::FromStr;
 const NUM_SECONDS : usize      = 10000;
 
 fn main() {
-    let mut first_line_done  = false;
-    let mut ts_index         = usize::MAX;
-    let mut qdelay_index     = usize::MAX;
-    let mut qlen_index       = usize::MAX;
-    let mut tpt              = vec![0; NUM_SECONDS];
+    let mut first_line_done    = false;
+    let mut ts_index           = usize::MAX;
+    let mut qdelay_index       = usize::MAX;
+    let mut qlen_index         = usize::MAX;
+    let mut orders_per_sec     = vec![0; NUM_SECONDS];
+    let mut qdelay_sum_per_sec = vec![0.0; NUM_SECONDS];
+    let mut qlen_sum_per_sec   = vec![0.0; NUM_SECONDS];
     let mut column_name_to_index_map = HashMap::new();
     let base_time = i64::from_str(&env::args().nth(2).unwrap()).unwrap();
     // File hosts must exist in current path before this produces output
@@ -40,16 +42,21 @@ fn main() {
                     let records = tmp.split(',').collect::<Vec::<&str>>();
                     let now  = i64::from_str(records[ts_index]).unwrap();
                     let qdelay = (f64::from_str(records[qdelay_index]).unwrap() * 1000.0).round() as i64;
-                    let qlen        = i64::from_str(records[qlen_index]).unwrap();
-                    tpt[((now-base_time)/1000000) as usize] += 1;
-                    println!("{} {} {}", now - base_time, qdelay, qlen);
+                    let qlen   = i64::from_str(records[qlen_index]).unwrap();
+                    let window_index = ((now-base_time)/1000000) as usize;
+                    orders_per_sec[window_index] += 1;
+                    qlen_sum_per_sec[window_index] += qlen as f64;
+                    qdelay_sum_per_sec[window_index] += qdelay as f64;
                 }
             }
         }
     }
-    // print out 1 second binned throughputs
-    for x in tpt {
-        eprintln!("{}", x);
+    // print out 1 second binned stats
+    for i in 0..NUM_SECONDS {
+        println!("{} {} {}",
+                 orders_per_sec[i],
+                 qlen_sum_per_sec[i]/(orders_per_sec[i] as f64),
+                 qdelay_sum_per_sec[i]/(orders_per_sec[i] as f64));
     }
 }
 
