@@ -11,7 +11,8 @@ fn main() {
     let mut record_count     = 0;
     let mut first_line_done  = false;
     let mut ts_index         = usize::MAX;
-    let mut qdelay_ts_index  = usize::MAX; 
+    let mut qdelay_index     = usize::MAX;
+    let mut qlen_index       = usize::MAX;
     let mut column_name_to_index_map = HashMap::new();
     let base_time = i64::from_str(&env::args().nth(2).unwrap()).unwrap();
     // File hosts must exist in current path before this produces output
@@ -30,16 +31,18 @@ fn main() {
                     i = i + 1;
                 }
                 first_line_done = true;
-                ts_index = column_name_to_index_map["Genesis-Timestamp"];
-                qdelay_ts_index = column_name_to_index_map["3"];
+                ts_index = column_name_to_index_map["Dequeue-Timestamp"];
+                qdelay_index = column_name_to_index_map["3"];
+                qlen_index = column_name_to_index_map["Buffer-Length-Deque"];
             } else {
                 if line.is_ok() {
                     record_count += 1;
                     let tmp = line.unwrap(); 
                     let records = tmp.split(',').collect::<Vec::<&str>>();
                     let now  = i64::from_str(records[ts_index]).unwrap();
-                    let orig_qdelay = (f64::from_str(records[qdelay_ts_index]).unwrap() * 1000.0).round() as i64;
-                    println!("{} {}", now - base_time, orig_qdelay);
+                    let qdelay = (f64::from_str(records[qdelay_index]).unwrap() * 1000.0).round() as i64;
+                    let qlen        = i64::from_str(records[qlen_index]).unwrap();
+                    println!("{} {} {}", now - base_time, qdelay, qlen);
                     if record_count % 10000 == 0 {
                         eprintln!("Done with {} records", record_count);
                     }
