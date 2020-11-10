@@ -8,11 +8,11 @@ use std::str::FromStr;
 const NUM_SECONDS : usize      = 10000;
 
 fn main() {
-    let mut record_count     = 0;
     let mut first_line_done  = false;
     let mut ts_index         = usize::MAX;
     let mut qdelay_index     = usize::MAX;
     let mut qlen_index       = usize::MAX;
+    let mut tpt              = vec![0; NUM_SECONDS];
     let mut column_name_to_index_map = HashMap::new();
     let base_time = i64::from_str(&env::args().nth(2).unwrap()).unwrap();
     // File hosts must exist in current path before this produces output
@@ -36,19 +36,20 @@ fn main() {
                 qlen_index = column_name_to_index_map["Buffer-Length-Deque"];
             } else {
                 if line.is_ok() {
-                    record_count += 1;
                     let tmp = line.unwrap(); 
                     let records = tmp.split(',').collect::<Vec::<&str>>();
                     let now  = i64::from_str(records[ts_index]).unwrap();
                     let qdelay = (f64::from_str(records[qdelay_index]).unwrap() * 1000.0).round() as i64;
                     let qlen        = i64::from_str(records[qlen_index]).unwrap();
+                    tpt[((now-base_time)/1000000) as usize] += 1;
                     println!("{} {} {}", now - base_time, qdelay, qlen);
-                    if record_count % 10000 == 0 {
-                        eprintln!("Done with {} records", record_count);
-                    }
                 }
             }
         }
+    }
+    // print out 1 second binned throughputs
+    for x in tpt {
+        eprintln!("{}", x);
     }
 }
 
